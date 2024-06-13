@@ -2,6 +2,15 @@ from PySide2 import QtCore, QtGui, QtWidgets
 from PySide2.QtCore import QModelIndex
 import nuke
 
+nukeApp = QtWidgets.QApplication.instance()
+mainWindow = 0
+
+for qw in nukeApp.topLevelWidgets():
+    
+    if qw.inherits('QMainWindow') and qw.metaObject().className() == 'Foundry::UI::DockMainWindow':
+        
+        mainWindow = qw
+
 class AovListModel(QtGui.QStandardItemModel):
 
     def __init__(self):
@@ -25,8 +34,8 @@ class Window(QtWidgets.QWidget):
 
     def __init__(self):
 
-        super().__init__()
-        self.setWindowFlags(QtGui.Qt.WindowStaysOnTopHint)
+        super().__init__(mainWindow)
+        self.setWindowFlags(QtCore.Qt.Window)
         self.resize(300, 100)
         self.setWindowTitle("Read Media (IOMatrix)")
         
@@ -151,5 +160,7 @@ class Window(QtWidgets.QWidget):
             shuffle = nuke.nodes.Shuffle2(in1 = aov.text())
             shuffle.setInput(0, finalTransform)
 
-window = Window()
-window.show()
+if mainWindow != 0:
+    
+    window = Window()
+    window.show()
