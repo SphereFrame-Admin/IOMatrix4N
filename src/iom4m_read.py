@@ -23,7 +23,6 @@ class AovListModel(QtGui.QStandardItemModel):
 
         self.root.appendRow(item)
         self.aovList.append(item)
-        print(self.aovList)
         
     def removeRow(self, row: int):
         
