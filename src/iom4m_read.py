@@ -28,6 +28,14 @@ class AovListModel(QtGui.QStandardItemModel):
         
         self.root.removeRow(row)
         self.aovList.pop(row)
+        
+class AovItem(QtGui.QStandardItem):
+
+    def __init__(self, aovType, aovOut):
+        
+        super().__init__(f"{aovType} ({aovOut})")
+        self.aovType = aovType
+        self.aovOut = aovOut
 
 class Window(QtWidgets.QWidget):
 
@@ -35,7 +43,7 @@ class Window(QtWidgets.QWidget):
 
         super().__init__(mainWindow)
         self.setWindowFlags(QtCore.Qt.Window)
-        self.resize(300, 100)
+        self.resize(600, 100)
         self.setWindowTitle("Read Media (IOMatrix)")
         
         self.font = QtGui.QFont()
@@ -86,12 +94,18 @@ class Window(QtWidgets.QWidget):
         self.aovAddBtn.clicked.connect(self.addAov)
         
         self.aovTypeBox = QtWidgets.QComboBox(self)
+        self.aovAsLabel = QtWidgets.QLabel("as: ", self)
+        self.aovAsLabel.setMaximumWidth(50)
+        self.aovAsLabel.setAlignment(QtGui.Qt.AlignCenter)
+        self.aovOutBox = QtWidgets.QComboBox(self)
 
         self.aovRmBtn = QtWidgets.QPushButton("Remove", self)
         self.aovRmBtn.clicked.connect(self.rmAov)
 
         self.aovBtnsLayout.addWidget(self.aovAddBtn)
         self.aovBtnsLayout.addWidget(self.aovTypeBox)
+        self.aovBtnsLayout.addWidget(self.aovAsLabel)
+        self.aovBtnsLayout.addWidget(self.aovOutBox)
         self.aovBtnsLayout.addWidget(self.aovRmBtn)
         self.layout.addLayout(self.aovBtnsLayout)
 
@@ -105,7 +119,7 @@ class Window(QtWidgets.QWidget):
         
         if self.aovTypeBox.count() > 0:
             
-            self.aovBoxModel.appendRow(QtGui.QStandardItem(self.aovTypeBox.currentText()))
+            self.aovBoxModel.appendRow(AovItem(self.aovTypeBox.currentText(), self.aovOutBox.currentText()))
     
     def rmAov(self):
         
@@ -132,6 +146,12 @@ class Window(QtWidgets.QWidget):
             
             self.aovTypeBox.addItem(layer)
 
+        self.aovOutBox.clear()
+        layers = nuke.layers()
+        for layer in layers:
+            
+            self.aovOutBox.addItem(layer)
+
         nuke.delete(readTmp)
 
     def createRead(self):
@@ -156,7 +176,7 @@ class Window(QtWidgets.QWidget):
             
         for aov in self.aovBoxModel.aovList:
             
-            shuffle = nuke.nodes.Shuffle2(in1 = aov.text())
+            shuffle = nuke.nodes.Shuffle2(in1 = aov.aovType, out1 = aov.aovOut, name = aov.text())
             shuffle.setInput(0, finalTransform)
 
 if mainWindow != 0:
